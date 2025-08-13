@@ -14,7 +14,125 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      bookings: {
+        Row: {
+          car_id: string
+          created_at: string
+          delivery_time: string | null
+          end_date: string
+          id: string
+          payment_method: string
+          start_date: string
+          status: string
+          total_amount: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          car_id: string
+          created_at?: string
+          delivery_time?: string | null
+          end_date: string
+          id?: string
+          payment_method: string
+          start_date: string
+          status?: string
+          total_amount: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          car_id?: string
+          created_at?: string
+          delivery_time?: string | null
+          end_date?: string
+          id?: string
+          payment_method?: string
+          start_date?: string
+          status?: string
+          total_amount?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookings_car_id_fkey"
+            columns: ["car_id"]
+            isOneToOne: false
+            referencedRelation: "cars"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cars: {
+        Row: {
+          available: boolean
+          brand: string
+          category: string
+          created_at: string
+          features: string[] | null
+          id: string
+          image_url: string | null
+          model: string
+          name: string
+          price_per_day: number
+          year: number
+        }
+        Insert: {
+          available?: boolean
+          brand: string
+          category: string
+          created_at?: string
+          features?: string[] | null
+          id?: string
+          image_url?: string | null
+          model: string
+          name: string
+          price_per_day: number
+          year: number
+        }
+        Update: {
+          available?: boolean
+          brand?: string
+          category?: string
+          created_at?: string
+          features?: string[] | null
+          id?: string
+          image_url?: string | null
+          model?: string
+          name?: string
+          price_per_day?: number
+          year?: number
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          full_name: string | null
+          id: string
+          phone: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          phone?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          phone?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
