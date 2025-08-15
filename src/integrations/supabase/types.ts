@@ -7,13 +7,37 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "13.0.4"
   }
   public: {
     Tables: {
+      admin_users: {
+        Row: {
+          created_at: string
+          id: string
+          role: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       bookings: {
         Row: {
           car_id: string
@@ -71,11 +95,17 @@ export type Database = {
           category: string
           created_at: string
           features: string[] | null
+          fuel_type: string | null
           id: string
           image_url: string | null
+          location: string | null
           model: string
           name: string
           price_per_day: number
+          rating: number | null
+          seating_capacity: number | null
+          total_reviews: number | null
+          transmission: string | null
           year: number
         }
         Insert: {
@@ -84,11 +114,17 @@ export type Database = {
           category: string
           created_at?: string
           features?: string[] | null
+          fuel_type?: string | null
           id?: string
           image_url?: string | null
+          location?: string | null
           model: string
           name: string
           price_per_day: number
+          rating?: number | null
+          seating_capacity?: number | null
+          total_reviews?: number | null
+          transmission?: string | null
           year: number
         }
         Update: {
@@ -97,12 +133,48 @@ export type Database = {
           category?: string
           created_at?: string
           features?: string[] | null
+          fuel_type?: string | null
           id?: string
           image_url?: string | null
+          location?: string | null
           model?: string
           name?: string
           price_per_day?: number
+          rating?: number | null
+          seating_capacity?: number | null
+          total_reviews?: number | null
+          transmission?: string | null
           year?: number
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          message: string
+          read: boolean
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message: string
+          read?: boolean
+          title: string
+          type?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string
+          read?: boolean
+          title?: string
+          type?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -133,12 +205,63 @@ export type Database = {
         }
         Relationships: []
       }
+      reviews: {
+        Row: {
+          booking_id: string | null
+          car_id: string
+          comment: string | null
+          created_at: string
+          id: string
+          rating: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          booking_id?: string | null
+          car_id: string
+          comment?: string | null
+          created_at?: string
+          id?: string
+          rating: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          booking_id?: string | null
+          car_id?: string
+          comment?: string | null
+          created_at?: string
+          id?: string
+          rating?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reviews_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reviews_car_id_fkey"
+            columns: ["car_id"]
+            isOneToOne: false
+            referencedRelation: "cars"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      is_admin: {
+        Args: { user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never

@@ -7,7 +7,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
-import { Search, Filter, Car, Fuel, Users, Settings, LogOut } from 'lucide-react';
+import { useAdmin } from '@/hooks/useAdmin';
+import { useRealtimeUpdates } from '@/hooks/useRealtime';
+import { Car, LogOut, User, Settings, Bell, Search, Filter } from 'lucide-react';
+import CarCard from '@/components/CarCard';
+import SearchFilters from '@/components/SearchFilters';
+import NotificationCenter from '@/components/NotificationCenter';
 
 interface Car {
   id: string;
@@ -20,6 +25,12 @@ interface Car {
   features: string[];
   image_url: string;
   available: boolean;
+  fuel_type?: string;
+  transmission?: string;
+  seating_capacity?: number;
+  rating?: number;
+  total_reviews?: number;
+  location?: string;
 }
 
 const Cars = () => {
@@ -27,10 +38,18 @@ const Cars = () => {
   const [filteredCars, setFilteredCars] = useState<Car[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
+  const [selectedFuelType, setSelectedFuelType] = useState('All');
+  const [selectedTransmission, setSelectedTransmission] = useState('All');
+  const [selectedSeating, setSelectedSeating] = useState('All');
+  const [priceRange, setPriceRange] = useState([500, 10000]);
   const [loading, setLoading] = useState(true);
   const { user, signOut } = useAuth();
+  const { isAdmin } = useAdmin();
   const navigate = useNavigate();
   const { toast } = useToast();
+  
+  // Initialize real-time updates
+  useRealtimeUpdates();
 
   useEffect(() => {
     if (!user) {
@@ -42,7 +61,17 @@ const Cars = () => {
 
   useEffect(() => {
     filterCars();
-  }, [cars, searchQuery, selectedCategory]);
+  }, [cars, searchQuery, selectedCategory, selectedFuelType, selectedTransmission, selectedSeating, priceRange]);
+
+  useEffect(() => {
+    // Listen for real-time car updates
+    const handleCarsUpdate = () => {
+      fetchCars();
+    };
+
+    window.addEventListener('cars-updated', handleCarsUpdate);
+    return () => window.removeEventListener('cars-updated', handleCarsUpdate);
+  }, []);
 
   const fetchCars = async () => {
     try {
@@ -50,7 +79,7 @@ const Cars = () => {
         .from('cars')
         .select('*')
         .eq('available', true)
-        .order('name');
+        .order('rating', { ascending: false });
 
       if (error) throw error;
       setCars(data || []);
@@ -73,7 +102,9 @@ const Cars = () => {
       filtered = filtered.filter(car =>
         car.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         car.brand.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        car.model.toLowerCase().includes(searchQuery.toLowerCase())
+        car.model.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (car.fuel_type && car.fuel_type.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (car.transmission && car.transmission.toLowerCase().includes(searchQuery.toLowerCase()))
       );
     }
 
@@ -81,6 +112,31 @@ const Cars = () => {
     if (selectedCategory !== 'All') {
       filtered = filtered.filter(car => car.category === selectedCategory);
     }
+
+    // Filter by fuel type
+    if (selectedFuelType !== 'All') {
+      filtered = filtered.filter(car => car.fuel_type === selectedFuelType);
+    }
+
+    // Filter by transmission
+    if (selectedTransmission !== 'All') {
+      filtered = filtered.filter(car => car.transmission === selectedTransmission);
+    }
+
+    // Filter by seating capacity
+    if (selectedSeating !== 'All') {
+      const targetSeats = Number(selectedSeating);
+      if (targetSeats === 7) {
+        filtered = filtered.filter(car => car.seating_capacity && car.seating_capacity >= 7);
+      } else {
+        filtered = filtered.filter(car => car.seating_capacity === targetSeats);
+      }
+    }
+
+    // Filter by price range
+    filtered = filtered.filter(car => 
+      car.price_per_day >= priceRange[0] && car.price_per_day <= priceRange[1]
+    );
 
     setFilteredCars(filtered);
   };
@@ -134,6 +190,27 @@ const Cars = () => {
               <h1 className="text-2xl font-bold">Car Rental</h1>
             </div>
             <div className="flex items-center space-x-4">
+              <NotificationCenter />
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate('/dashboard')}
+                className="flex items-center space-x-2"
+              >
+                <User className="h-4 w-4" />
+                <span>Dashboard</span>
+              </Button>
+              {isAdmin && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigate('/admin')}
+                  className="flex items-center space-x-2"
+                >
+                  <Settings className="h-4 w-4" />
+                  <span>Admin</span>
+                </Button>
+              )}
               <span className="text-sm text-muted-foreground">
                 Welcome, {user?.email}
               </span>
