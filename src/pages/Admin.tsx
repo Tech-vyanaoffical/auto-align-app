@@ -137,7 +137,27 @@ const Admin: React.FC = () => {
         .order('created_at', { ascending: false });
 
       if (bookingsError) throw bookingsError;
-      setBookings(bookingsData || []);
+      
+      // Type-safe handling of booking data
+      const typedBookings = (bookingsData || []).map(booking => {        
+        // Check if profiles exists and has the expected structure
+        let profiles: { full_name: string } | null = null;
+        
+        if (booking.profiles && typeof booking.profiles === 'object') {
+          // Check if it's not an error object and has full_name
+          const profilesObj = booking.profiles as any;
+          if (!('error' in profilesObj) && 'full_name' in profilesObj) {
+            profiles = profilesObj as { full_name: string };
+          }
+        }
+        
+        return {
+          ...booking,
+          profiles
+        } as Booking;
+      });
+      
+      setBookings(typedBookings);
 
     } catch (error: any) {
       toast({
